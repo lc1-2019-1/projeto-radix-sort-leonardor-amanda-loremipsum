@@ -1,31 +1,227 @@
-\documentclass[a4paper, 10pt]{article}
-
+\documentclass[a4paper, 12pt]{article}
 \usepackage[utf8]{inputenc}
-\usepackage[brazilian]{babel}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage[bottom=2.0cm,top=2.0cm,left=2.0cm,right=2.0cm]{geometry}
+\usepackage[brazillian]{babel}
+\usepackage{indentfirst}
+\usepackage{hyperref}  %%%%
+\usepackage{alltt}
+\setlength{\parindent}{0.5cm}
+\hypersetup{colorlinks,citecolor=black,filecolor=black,linkcolor=black,urlcolor=black} %%%%
 
-% The following packages can be found on http:\\www.ctan.org
-\usepackage{graphics} % for pdf, bitmapped graphics files
-\usepackage{epsfig} % for postscript graphics files
-\usepackage{mathptmx} % assumes new font selection scheme installed
-\usepackage{times} % assumes new font selection scheme installed
-\usepackage{amsmath} % assumes amsmath package installed
-\usepackage{amssymb}  % assumes amsmath package installed
-
-\title{\LARGE \bf
-Projeto Radix Sort (2019/1)
-}
-
-\author{Nome e matrícula 1\\ Nome e matrícula 2 \\ Nome e matrícula 3}
 
 \begin{document}
-\maketitle
+\title{Capa}
 
+\begin{titlepage}
+	\begin{center}
+		\begin{figure}[htb!]
+			\begin{flushleft}
+				\includegraphics[width=3.9cm]{imagens/logo_unb.png}
+			\end{flushleft}
+		\end{figure}
+        \vspace{-2.5cm}
+        \hspace{2.1cm}\Large{\textbf{Universidade de Brasília}}\\
+        
+        \vspace{200pt}
+        
+        \LARGE{\textbf{Relatório:}}\\ 
+        \Large{Formalização de Propriedades do Algoritmo Radix Sort}\\
+        
+        \vspace{150pt}
+        
+        \hfill Grupo: \\
+        
+        \vspace{30pt} 
+        \hfill Leonardo Ribas do Nascimento\hspace{20pt} Mat: 17/0038963\\
+        \hfill Amanda Augusto da Silva\hspace{20pt} Mat: 18/0012053\\
+
+        \vspace{25pt}
+        \hfill \underline{Professor:}\\
+        \hfill Flávio L. C. de Moura\\ 
+        
+        
+        \vspace{\fill}
+        \LARGE \bf{\today}
+          
+	\end{center}
+\end{titlepage}
+
+
+\newpage
+
+
+\pagenumbering{arabic}
+\large
 \section{Introdução}
+O projeto desenvolvido ao longo da disciplina de Lógica Computacional 1 visa a demonstração da correção do algoritmo de ordenação Radix Sort. Tal demonstração consiste na formalização de três propriedades do algoritmo utilizando o assistente de provas PVS, assim como técnincas dedutivas da lógica de predicados.
 
-Escreva aqui sua introdução
+\section{Especificação do Problema}
+O Radix sort utilizado no projeto ordena números inteiros, partindo da ordenação do dígito menos significativo ao mais significativo utilizando o merge sort como algoritmo auxiliar.
 
-\section{Adicione novas seções que achar conveniente}
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{radixsort.png}
+    \caption{Funcionamento do Merge Sort}
+\end{figure}
+
+A primeira questão, consiste em demonstrar que se uma lista está ordenada até o d-ésimo dígito,
+e se aplica radixsort entre os dígitos d e k, então ficará ordenada até o dígito k + 1.
+
+A segunda questão, está relacionada com o fato de que a função radixsort preserva os elementos das listas dadas como argumento
+
+Finalmente, a terceira questão é demonstrar que função radixsort gera uma lista ordenada
+
+\section{Descrição das soluções e formalizações}
+
+\subsection{Questão 1}
+Queremos provar a seguinte propriedade:
+\begin{alltt}
+ FORALL(l : list[nat], k : nat, d:nat | d <= k) :
+     is_sorted_ud?(l,d) =>
+        is_sorted_ud?(radixsort(l, k, d), k+1)
+\end{alltt}
+
+
+Iniciamos a prova com indução forte no intervalo k-d e obtemos como hipótese de indução que a propriedade vale para qualquer intervalo menor que k-d.
+Ficamos então com o seguinte sequente:
+
+
+\begin{alltt}
+ [-1]  FORALL (y_1: nat, y_2: {d: nat | d <= y_1}):
+        FORALL (l: list[nat]):
+          y_1 - y_2 < x!1 - x!2 IMPLIES
+           is_sorted_ud?(l, y_2) =>
+            is_sorted_ud?(radixsort(l, y_1, y_2), y_1 + 1)
+ [-2]  is_sorted_ud?(l, x!2)
+  |-------
+ [1]   is_sorted_ud?(radixsort(l, x!1, x!2), x!1 + 1)
+\end{alltt}
+
+
+Aplicamos a definição de radixsort na formula 1, e dividiremos nossa prova em 2 subprovas de acordo com a implementação do próprio radixsort.
+A primeira subprova assume que k e d são iguais (PVS os denomina x!2 x!1 respectivamente).
+Pela definição do radixsort quando k e d são iguais é retornado apenas um merge\_sort(l, d), ficamos com o seguinte sequente:
+
+
+\begin{alltt}
+ [-1]  x!2 = x!1
+ [-2]  is_sorted_ud?(l, x!2)
+  |-------
+ [1]   is_sorted_ud?(merge_sort(l, x!2), 1 + x!1)
+\end{alltt}
+
+
+Essa subprova é fechada utilizando-se o lema "merge\_sort\_d\_sorts" que afirma que qualquer lista ordenada pelo merge-sort até o d-ésimo digito tambem está ordenada até o d-ésimo digito + 1.
+Na segunda subprova temos que $k \neq d$ e pela definição do radixsort temos que provar:
+
+
+\begin{alltt}
+ is_sorted_ud?(radixsort(merge_sort(l, x!2), x!1, 1 + x!2), 1 + x!1)
+\end{alltt}
+
+
+Temos por hipótese de indução que para qualquer lista e qualquer intervalo menor que k-d a propriedade vale, portantao podemos instanciamor nossa hipótese como se segue: \\
+\begin{itemize}
+\item l recebe merge\_sort(l, x!2),\\
+\item y\_2 recebe 1+x!2,\\
+\item y\_1 recebe x!1,\\
+\item pois $x!1 - (1+x!2) < x!1 - x!2$.
+\end{itemize}
+ 
+ 
+Ficamos com o seguinte sequente:
+
+\begin{alltt}
+ is_sorted_ud?(merge_sort(l, x!2), 1 + x!2) =>
+        is_sorted_ud?(radixsort(merge_sort(l, x!2), x!1, 1 + x!2), x!1 + 1)
+\end{alltt}
+
+
+Portanto se provarmos o antecedente is\_sorted\_ud?(merge\_sort(l,x!2), 1 + x!2) fecharemos a prova. E provamos isso da mesma maneira que provamos a primeira subprova do problema.  
+
+\subsection{Questão 2}
+Queremos provar a seguinte propriedade:
+
+
+\begin{alltt}
+FORALL(l : list[nat], k : nat, d : nat | d <=k):
+  permutations(l, radixsort(l,k,d))
+\end{alltt}
+
+
+Assim como na propriedade anterior, aplicamos indução forte no intervalo k-d, e dividiremos nossa prova em duas subprovas: caso $k = d$ e caso $k \neq d$.
+
+
+\item Caso $k = d$:\\
+Por definição, quando $k = d$ radixsort retorna merge\_sort(l, x!2), e portanto temos que provar:
+
+
+\begin{alltt}
+permutations(l, merge_sort(l, x!2))
+\end{alltt}
+
+Provamos isso a partir do lema "merge\_sort\_permutes" que afirma que o merge\_sort preserva os elementos da lista.
+
+ Caso $k \neq d$:\\
+Instanciamos nossa hipótese de indução da mesma maneira que instanciamos na questão anterior e obtemos:
+
+
+\begin{alltt}
+{-1}  permutations(merge_sort(l, x!2),
+                   radixsort(merge_sort(l, x!2), x!1, 1 + x!2))
+  |-------
+[1]   x!2 = x!1
+[2]   permutations(l, radixsort(merge_sort(l, x!2), x!1, 1 + x!2))
+\end{alltt}
+
+
+Sabemos que pelo lemma "merge\_sort\_permutes" merge\_sort(l, x!2) é uma permutação de l. 
+
+
+\begin{alltt}
+{-1}  permutations(l, merge_sort(l, x!2))
+[-2]  permutations(merge_sort(l, x!2),
+                   radixsort(merge_sort(l, x!2), x!1, 1 + x!2))
+  |-------
+[1]   x!2 = x!1
+[2]   permutations(l, radixsort(merge_sort(l, x!2), x!1, 1 + x!2))
+
+\end{alltt}
+
+
+E pelo lema "permutations\_is\_transitive" temos que se l permuta com merge\_sort(l, x!2) e que merge\_sort(l, x!2) permuta com radixsort(merge\_sort(l, x!2), x!1, 1+x!2) então l permuta com radixsort(merge\_sort(l, x!2), x!1, 1 + x!2).
+
+
+\begin{alltt}
+{-1}  permutations(l, merge_sort(l, x!2))
+[-2]  permutations(merge_sort(l, x!2),
+                   radixsort(merge_sort(l, x!2), x!1, 1 + x!2))
+  |-------
+[1]   x!2 = x!1
+[2]   permutations(l, radixsort(merge_sort(l, x!2), x!1, 1 + x!2))
+
+\end{alltt}
+
+Assim fechamos a prova da segunda propriedade.
 
 \section{Conclusão}
+Com esse projeto tivemos a oportunidade de colocar em prática os fundamentos explorados em sala de aula na disciplina de Lógica Computacional 1, completando a formalização da carreção do algoritmo radix sort.
+Alem de revisitarmos conceitos de indução, utilizamos conceitos da lógica dedutiva e lógica de predicados.
+
+As dificuladades em relação ao projeto giram em torno, principalmente, da ferramenta PVS, que a principio não dialoga diretamente com os conceitos vistos em sala. É necessário um certo período de adaptação até que se domine os conceitos básicos da ferramenta assim como a propria linguagem utilizada no PVS.
+
+No geral a experiência em relação ao projeto foi boa, embora não tenhamos conseguido completar a questão 3, finalizar e formalizar propriedades num ambiente que garante a correção de tais provas é gratificante.
+
+\section{Referências}
+M. Ayala-Rincón and F. L. C. de Moura. Applied Logic for Computer Scientists - Computational
+Deduction and Formal Proofs. Undergraduate Topics in Computer Science.
+Springer, 2017
+
+
+\vspace{50pt}
+
+
 
 \end{document}
